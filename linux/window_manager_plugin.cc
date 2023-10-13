@@ -51,7 +51,11 @@ static FlMethodResponse* set_as_frameless(WindowManagerPlugin* self,
 
 static FlMethodResponse* destroy(WindowManagerPlugin* self) {
   self->_is_prevent_close = false;
-  gtk_window_close(get_window(self));
+
+  // SNG added widget_destroy
+  // gtk_window_close(get_window(self));
+  gtk_widget_destroy(GTK_WIDGET(get_window(self)));
+
   return FL_METHOD_RESPONSE(
       fl_method_success_response_new(fl_value_new_bool(true)));
 }
@@ -1093,9 +1097,12 @@ void window_manager_plugin_register_with_registrar(
   plugin->window_geometry.max_width = G_MAXINT;
   plugin->window_geometry.max_height = G_MAXINT;
 
-  // Disconnect all delete-event handlers first in flutter 3.10.1, which causes delete_event not working.
-  // Issues from flutter/engine: https://github.com/flutter/engine/pull/40033 
-  guint handler_id = g_signal_handler_find(get_window(plugin), G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, fl_plugin_registrar_get_view(plugin->registrar));
+  // Disconnect all delete-event handlers first in flutter 3.10.1, which causes
+  // delete_event not working. Issues from flutter/engine:
+  // https://github.com/flutter/engine/pull/40033
+  guint handler_id = g_signal_handler_find(
+      get_window(plugin), G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL,
+      fl_plugin_registrar_get_view(plugin->registrar));
   if (handler_id > 0) {
     g_signal_handler_disconnect(get_window(plugin), handler_id);
   }
